@@ -1753,10 +1753,20 @@ private fun renderPdfPages(descriptor: ParcelFileDescriptor): List<Bitmap> {
 
 private fun keyboardOptionsFor(fieldType: CardFieldType): KeyboardOptions {
     return when (fieldType) {
-        CardFieldType.EMAIL -> KeyboardOptions(keyboardType = KeyboardType.Email)
-        CardFieldType.PHONE -> KeyboardOptions(keyboardType = KeyboardType.Phone)
-        CardFieldType.MULTILINE -> KeyboardOptions(keyboardType = KeyboardType.Text)
-        CardFieldType.TEXT -> KeyboardOptions.Default
+        CardFieldType.EMAIL ->
+            KeyboardOptions(keyboardType = KeyboardType.Email)
+
+        CardFieldType.PHONE ->
+            KeyboardOptions(keyboardType = KeyboardType.Phone)
+
+        CardFieldType.LINK ->
+            KeyboardOptions(keyboardType = KeyboardType.Uri)
+
+        CardFieldType.MULTILINE ->
+            KeyboardOptions(keyboardType = KeyboardType.Text)
+
+        CardFieldType.TEXT ->
+            KeyboardOptions.Default
     }
 }
 

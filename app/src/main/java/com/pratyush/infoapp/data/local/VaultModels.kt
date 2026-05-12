@@ -14,6 +14,7 @@ enum class CardFieldType {
     TEXT,
     PHONE,
     EMAIL,
+    LINK,
     MULTILINE
 }
 
