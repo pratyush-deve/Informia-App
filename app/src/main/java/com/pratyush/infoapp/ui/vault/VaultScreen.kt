@@ -96,6 +96,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material3.Button
@@ -168,6 +169,7 @@ fun VaultScreen(
     onCreateCard: () -> Unit,
     onEditCard: (VaultCard) -> Unit,
     onDeleteCard: (VaultCard) -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -208,6 +210,15 @@ fun VaultScreen(
                                 text = "Private cards for identity, contacts, documents, and more",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.White.copy(alpha = 0.72f)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onOpenSettings) {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = "Open settings",
+                                tint = Color.White
                             )
                         }
                     }
@@ -1910,7 +1921,8 @@ private fun VaultScreenPreview() {
             ),
             onCreateCard = {},
             onEditCard = {},
-            onDeleteCard = {}
+            onDeleteCard = {},
+            onOpenSettings = {}
         )
     }
 }
