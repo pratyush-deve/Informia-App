@@ -78,13 +78,16 @@ fun getFileName(context: Context, uri: Uri): String? {
 
 
 fun shareFileExternally(context: Context, uri: Uri) {
-    val file = File(uri.path!!)
-
-    val contentUri = FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        file
-    )
+    val contentUri = if (uri.scheme == "file") {
+        val file = File(uri.path!!)
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+    } else {
+        uri
+    }
 
     val mimeType = context.contentResolver.getType(contentUri) ?: "image/*"
 

@@ -90,6 +90,7 @@ class UpdateRepository private constructor(context: Context) {
 
 private fun currentInformiaUpdate(): UpdateVersion {
     return UpdateVersion(
+        //for major updates change this manually
         versionCode = 3L,
         versionName = "1.2",
         title = "What's New in Informia",

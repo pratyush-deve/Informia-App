@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -79,6 +78,9 @@ import com.pratyush.infoapp.ui.vault.utils.gradientOptions
 import com.pratyush.infoapp.ui.vault.utils.iconOptions
 import com.pratyush.infoapp.ui.vault.utils.createTempImageUri
 import com.pratyush.infoapp.ui.vault.components.TinyProfilePreviewCard
+import com.pratyush.infoapp.utils.decodeImageUriGroup
+import com.pratyush.infoapp.utils.encodeImageUriGroup
+import com.pratyush.infoapp.utils.isImageUriGroup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,13 +102,42 @@ fun CardEditScreen(
 ) {
     val context = LocalContext.current
     var showAttachmentOptions by remember { mutableStateOf(false) }
+    var showAddImageDialog by remember { mutableStateOf(false) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val selectedImageUris = remember(context, state.imageUri) {
+        val attachment = state.imageUri
+        val attachmentMimeType = attachment
+            ?.takeUnless(::isImageUriGroup)
+            ?.let { uriString ->
+                runCatching { context.contentResolver.getType(Uri.parse(uriString)) }.getOrNull()
+            }
+            .orEmpty()
+        when {
+            attachment.isNullOrBlank() -> emptyList()
+            isImageUriGroup(attachment) -> decodeImageUriGroup(attachment)
+            attachmentMimeType.contains("pdf", ignoreCase = true) -> emptyList()
+            attachment.endsWith(".pdf", ignoreCase = true) -> emptyList()
+            else -> decodeImageUriGroup(attachment)
+        }
+    }
+
+    fun appendImageUris(newUris: List<Uri>) {
+        if (newUris.isEmpty()) return
+        val newUriStrings = newUris.map { it.toString() }
+        onImageChange(
+            if (state.type == CardType.PROFILE) {
+                newUriStrings.firstOrNull()
+            } else {
+                encodeImageUriGroup(selectedImageUris + newUriStrings)
+            }
+        )
+    }
 
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        onImageChange(uri?.toString())
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        appendImageUris(uris)
     }
     val galleryPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -137,7 +168,13 @@ fun CardEditScreen(
     val cameraPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        onImageChange(if (success) pendingCameraUri?.toString() else null)
+        if (success && pendingCameraUri != null) {
+            if (state.type == CardType.PROFILE) {
+                onImageChange(pendingCameraUri.toString())
+            } else {
+                appendImageUris(listOf(pendingCameraUri) as List<Uri>)
+            }
+        }
         if (!success) pendingCameraUri = null
     }
 
@@ -297,11 +334,22 @@ fun CardEditScreen(
                 }
             }
 
-            Text(
-                text = "Preview",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Preview / Attachments",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                if (state.type != CardType.PROFILE) {
+                    IconButton(onClick = { showAddImageDialog = true }) {
+                        Icon(Icons.Outlined.Add, contentDescription = "Add images")
+                    }
+                }
+            }
             AttachmentChooserButton(
                 isProfile = state.type == CardType.PROFILE,
                 hasPreview = state.imageUri != null,
@@ -312,6 +360,12 @@ fun CardEditScreen(
                 card = previewCard,
                 expanded = true,
                 editablePreview = true,
+                onAddImages = if (state.type == CardType.PROFILE) null else {
+                    { showAddImageDialog = true }
+                },
+                onRemoveImage = { uriString ->
+                    onImageChange(encodeImageUriGroup(selectedImageUris.filterNot { it == uriString }))
+                },
                 tone = toneFor(previewCard.gradientStart, previewCard.gradientEnd)
             )
 
@@ -351,9 +405,7 @@ fun CardEditScreen(
                 showAttachmentOptions = false
                 when (option) {
                     AttachmentOption.GALLERY -> {
-                        imagePicker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
+                        imagePicker.launch("image/*")
                     }
                     AttachmentOption.CAMERA -> {
                         val cameraUri = createTempImageUri(context)
@@ -371,7 +423,25 @@ fun CardEditScreen(
                     }
                 }
             },
-            isProfile = state.type == CardType.PROFILE
+            isProfile = state.type == CardType.PROFILE,
+            hasImages = selectedImageUris.isNotEmpty()
+        )
+    }
+
+    if (showAddImageDialog) {
+        AddImageDialog(
+            isVisible = showAddImageDialog,
+            onDismiss = { showAddImageDialog = false },
+            onGallerySelected = {
+                showAddImageDialog = false
+                imagePicker.launch("image/*")
+            },
+            onCameraSelected = {
+                showAddImageDialog = false
+                val cameraUri = createTempImageUri(context)
+                pendingCameraUri = cameraUri
+                cameraPicker.launch(cameraUri)
+            }
         )
     }
 }

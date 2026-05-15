@@ -20,8 +20,11 @@ enum class FileType(val label: String, val chipLabel: String) {
  */
 fun getFileType(context: Context, uri: Uri): FileType {
     val path = uri.toString().lowercase()
+    val mimeType = context.contentResolver.getType(uri).orEmpty()
 
     return when {
+        mimeType.contains("pdf", ignoreCase = true) -> FileType.PDF
+        mimeType.startsWith("image", ignoreCase = true) -> FileType.IMAGE
         path.endsWith(".pdf") -> FileType.PDF
         path.endsWith(".jpg") ||
                 path.endsWith(".jpeg") ||

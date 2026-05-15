@@ -10,6 +10,9 @@ import com.pratyush.infoapp.data.local.VaultCardEntity
 import com.pratyush.infoapp.data.local.VaultDao
 import com.pratyush.infoapp.data.local.VaultField
 import com.pratyush.infoapp.data.local.VaultFieldEntity
+import com.pratyush.infoapp.utils.decodeImageUriGroup
+import com.pratyush.infoapp.utils.encodeImageUriGroup
+import com.pratyush.infoapp.utils.isImageUriGroup
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.File
@@ -126,7 +129,7 @@ class VaultRepository(
     suspend fun deleteCard(cardId: Long) {
         val card = dao.getCardById(cardId)
         if (card != null) {
-            deleteIfManaged(card.card.imageUri)
+            deleteManagedAttachments(card.card.imageUri)
         }
         dao.deleteFieldsForCard(cardId)
         dao.deleteCard(cardId)
@@ -137,10 +140,26 @@ class VaultRepository(
         previousUri: String?
     ): String? {
         if (sourceUri.isNullOrBlank()) {
-            deleteIfManaged(previousUri)
+            deleteManagedAttachments(previousUri)
             return null
         }
 
+        if (isImageUriGroup(sourceUri)) {
+            val persistedUris = decodeImageUriGroup(sourceUri).mapNotNull { uri ->
+                persistSingleAttachment(uri, previousUri = null)
+            }
+            deleteManagedAttachmentsExcept(previousUri, persistedUris.toSet())
+            return encodeImageUriGroup(persistedUris)
+        }
+
+        deleteManagedAttachmentsExcept(previousUri, setOf(sourceUri))
+        return persistSingleAttachment(sourceUri, previousUri)
+    }
+
+    private fun persistSingleAttachment(
+        sourceUri: String,
+        previousUri: String?
+    ): String? {
         if (isManagedAttachment(sourceUri)) {
             return sourceUri
         }
@@ -155,7 +174,7 @@ class VaultRepository(
             }
         } ?: return previousUri
 
-        deleteIfManaged(previousUri)
+        deleteManagedAttachments(previousUri)
         return Uri.fromFile(targetFile).toString()
     }
 
@@ -184,6 +203,20 @@ class VaultRepository(
         runCatching {
             File(Uri.parse(uriString).path.orEmpty()).delete()
         }
+    }
+
+    private fun deleteManagedAttachments(uriString: String?) {
+        decodeImageUriGroup(uriString).forEach { uri ->
+            deleteIfManaged(uri)
+        }
+    }
+
+    private fun deleteManagedAttachmentsExcept(uriString: String?, retainedUris: Set<String>) {
+        decodeImageUriGroup(uriString)
+            .filterNot { it in retainedUris }
+            .forEach { uri ->
+                deleteIfManaged(uri)
+            }
     }
 
     private fun sampleCards(): List<VaultCard> {

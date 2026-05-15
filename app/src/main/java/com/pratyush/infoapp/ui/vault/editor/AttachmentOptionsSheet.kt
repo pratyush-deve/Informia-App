@@ -30,7 +30,8 @@ fun AttachmentOptionsSheet(
     isVisible: Boolean,
     onDismiss: () -> Unit,
     onOptionSelected: (AttachmentOption) -> Unit,
-    isProfile: Boolean
+    isProfile: Boolean,
+    hasImages: Boolean = false
 ) {
     if (isVisible) {
         ModalBottomSheet(
@@ -65,7 +66,10 @@ fun AttachmentOptionsSheet(
                 AttachmentOptionCard(
                     option = AttachmentOption.FILES,
                     onClick = { onOptionSelected(AttachmentOption.FILES) },
-                    subtitle = if (isProfile) {
+                    enabled = !hasImages,
+                    subtitle = if (hasImages) {
+                        "Documents cannot be mixed with image attachments"
+                    } else if (isProfile) {
                         "Browse image files"
                     } else {
                         "Browse image files or PDF documents"
@@ -77,17 +81,22 @@ fun AttachmentOptionsSheet(
 }
 
 @Composable
-private fun AttachmentOptionCard(
+fun AttachmentOptionCard(
     option: AttachmentOption,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     subtitle: String = option.subtitle
 ) {
     ElevatedCard(
-        onClick = onClick,
+        onClick = if (enabled) onClick else ({ }),
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.55f)
+            containerColor = if (enabled) {
+                MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.55f)
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f)
+            }
         )
     ) {
         Row(

@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,9 +21,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +47,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Notes
@@ -57,6 +63,8 @@ import com.pratyush.infoapp.data.local.CardType
 import com.pratyush.infoapp.ui.vault.utils.CardTone
 import com.pratyush.infoapp.ui.vault.utils.FileType
 import com.pratyush.infoapp.ui.vault.utils.getFileType
+import com.pratyush.infoapp.utils.decodeImageUriGroup
+import com.pratyush.infoapp.utils.primaryAttachmentUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -66,15 +74,19 @@ fun CardMedia(
     expanded: Boolean,
     editablePreview: Boolean,
     onOpenPreview: (() -> Unit)? = null,
+    onAddImages: (() -> Unit)? = null,
+    onRemoveImage: ((String) -> Unit)? = null,
     tone: CardTone
 ) {
     var aspectRatio by remember { mutableStateOf(1f) }
 
     val context = LocalContext.current
     val uriString = card.imageUri
-    val uri = if (uriString?.isNotEmpty() == true) {
+    val imageUris = remember(uriString) { decodeImageUriGroup(uriString) }
+    val primaryUriString = remember(uriString) { primaryAttachmentUri(uriString) }
+    val uri = if (primaryUriString?.isNotEmpty() == true) {
         try {
-            uriString.toUri()
+            primaryUriString.toUri()
         } catch (e: Exception) {
             null
         }
@@ -175,7 +187,14 @@ fun CardMedia(
         card.type == CardType.PROFILE -> Unit
         uri != null -> {
             Spacer(modifier = Modifier.height(if (editablePreview) 10.dp else 16.dp))
-            if (!expanded && !editablePreview) {
+            if (editablePreview && fileType != FileType.PDF) {
+                ImageThumbnailRow(
+                    imageUris = imageUris,
+                    title = card.title,
+                    onAddImages = onAddImages,
+                    onRemoveImage = onRemoveImage
+                )
+            } else if (!expanded && !editablePreview) {
                 CollapsedPreviewButton(
                     icon = previewIconFor(fileType),
                     label = fileType.chipLabel,
@@ -294,7 +313,7 @@ fun CardMedia(
 
                             if (!editablePreview) {
                                 Text(
-                                    text = "Preview",
+                                    text = "Preview / Attachments",
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
                                         .padding(8.dp)
@@ -312,6 +331,72 @@ fun CardMedia(
                 }
             }
             Spacer(modifier = Modifier.height(if (editablePreview) 6.dp else 14.dp))
+        }
+    }
+}
+
+@Composable
+private fun ImageThumbnailRow(
+    imageUris: List<String>,
+    title: String,
+    onAddImages: (() -> Unit)?,
+    onRemoveImage: ((String) -> Unit)?
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        itemsIndexed(imageUris) { index, uriString ->
+            Box(
+                modifier = Modifier
+                    .size(78.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = uriString.toUri(),
+                    contentDescription = "$title image ${index + 1}",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(6.dp),
+                    contentScale = ContentScale.Fit
+                )
+                if (onRemoveImage != null) {
+                    IconButton(
+                        onClick = { onRemoveImage(uriString) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(24.dp)
+                            .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = "Remove image",
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
+        if (onAddImages != null) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(78.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                        .clickable { onAddImages() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = "Add images",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
