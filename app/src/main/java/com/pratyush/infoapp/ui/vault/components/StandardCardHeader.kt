@@ -39,7 +39,11 @@ fun StandardCardHeader(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ) {
-        CardIconBubble(icon = iconFor(card.iconKey), size = 48.dp)
+        CardIconBubble(
+            icon = iconFor(card.iconKey),
+            size = 48.dp,
+            iconTint = tone.content
+        )
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(

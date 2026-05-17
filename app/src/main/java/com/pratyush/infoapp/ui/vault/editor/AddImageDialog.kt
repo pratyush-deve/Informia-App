@@ -19,9 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.CardDefaults
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.pratyush.infoapp.ui.vault.components.CardIconBubble
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

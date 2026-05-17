@@ -16,15 +16,22 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CardIconBubble(
     icon: ImageVector,
-    size: androidx.compose.ui.unit.Dp
+    size: androidx.compose.ui.unit.Dp,
+    iconTint: Color
 ) {
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.15f)),
+            .background(
+                iconTint.copy(alpha = 0.10f)
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = Color.White)
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint
+        )
     }
 }

@@ -131,7 +131,10 @@ fun VaultCardItem(
                         FieldRow(
                             field = field,
                             onFieldCopied = onFieldCopied,
-                            tone = tone
+                            tone = tone,
+                            startColor = card.gradientStart,
+                            endColor = card.gradientEnd,
+                            iconKey = card.iconKey
                         )
                     }
                 }

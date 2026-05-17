@@ -70,7 +70,9 @@ fun EditableFieldCard(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Value") },
                 keyboardOptions = keyboardOptionsFor(field.fieldType),
-                minLines = if (field.fieldType == CardFieldType.MULTILINE) 3 else 1
+                singleLine = field.fieldType != CardFieldType.MULTILINE,
+                minLines = if (field.fieldType == CardFieldType.MULTILINE) 2 else 1,
+                maxLines = if (field.fieldType == CardFieldType.MULTILINE) 4 else 1
             )
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -1,10 +1,13 @@
 package com.pratyush.infoapp.ui.vault.components
 
+import android.R.attr.endColor
+import android.R.attr.startColor
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -52,12 +55,18 @@ import kotlinx.coroutines.launch
 fun FieldRow(
     field: VaultField,
     onFieldCopied: () -> Unit,
-    tone: CardTone
-) {
+    tone: CardTone,
+    startColor: Long,
+    endColor: Long,
+    iconKey: String
+){
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var copyJob by remember(field.id, field.value) { mutableStateOf<Job?>(null) }
+    var showMultilinePreview by remember {
+        mutableStateOf(false)
+    }
 
     Surface(
         color = tone.fieldContainer,
@@ -67,6 +76,11 @@ fun FieldRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .pointerInteropFilter { event ->
+
+                    if (field.fieldType == CardFieldType.MULTILINE) {
+                        return@pointerInteropFilter false
+                    }
+
                     when (event.actionMasked) {
                         MotionEvent.ACTION_DOWN -> {
                             copyJob?.cancel()
@@ -109,7 +123,7 @@ fun FieldRow(
                     color = tone.secondary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 if (field.fieldType == CardFieldType.LINK && field.value.isNotBlank()) {
                     val linkMeta = extractLinkMeta(field.value)
                     Row(
@@ -153,7 +167,16 @@ fun FieldRow(
                     Text(
                         text = field.value.ifBlank { "No value" },
                         style = MaterialTheme.typography.bodyLarge,
-                        color = tone.content
+                        color = tone.content,
+                        maxLines = if (field.fieldType == CardFieldType.MULTILINE) 3 else 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = if (field.fieldType == CardFieldType.MULTILINE) {
+                            Modifier.clickable {
+                                showMultilinePreview = true
+                            }
+                        } else {
+                            Modifier
+                        }
                     )
                 }
             }
@@ -185,6 +208,25 @@ fun FieldRow(
                 }
             }
         }
+    }
+    if (
+        field.fieldType == CardFieldType.MULTILINE &&
+        showMultilinePreview
+    ) {
+
+        MultilinePreviewDialog(
+            title = field.label,
+            content = field.value,
+            clipboardManager = clipboard,
+            onDismiss = {
+                showMultilinePreview = false
+            },
+            onCopied = onFieldCopied,
+            tone = tone,
+            startColor = startColor,
+            endColor = endColor,
+            iconKey = iconKey
+        )
     }
 }
 

@@ -4,7 +4,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.ContactPhone
 import androidx.compose.material.icons.outlined.Description
@@ -58,14 +66,14 @@ val gradientOptions = listOf(
  * Available icon options for cards.
  */
 val iconOptions = listOf(
-    "person" to Icons.Outlined.Person,
-    "contact" to Icons.Outlined.ContactPhone,
-    "home" to Icons.Outlined.Home,
-    "vehicle" to Icons.Outlined.DirectionsCar,
-    "document" to Icons.Outlined.Description,
-    "certificate" to Icons.Outlined.WorkspacePremium,
-    "badge" to Icons.Outlined.Badge,
-    "article" to Icons.AutoMirrored.Outlined.Article
+    "person" to Icons.Filled.Person,
+    "contact" to Icons.Filled.ContactPhone,
+    "home" to Icons.Filled.Home,
+    "vehicle" to Icons.Filled.DirectionsCar,
+    "document" to Icons.Filled.Description,
+    "certificate" to Icons.Filled.WorkspacePremium,
+    "badge" to Icons.Filled.Badge,
+    "article" to Icons.AutoMirrored.Filled.Article
 )
 
 /**

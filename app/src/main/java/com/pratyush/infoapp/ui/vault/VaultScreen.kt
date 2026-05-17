@@ -86,6 +86,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
@@ -609,7 +610,7 @@ private fun ProfileAvatar(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Outlined.Person,
+                imageVector = Icons.Filled.Person,
                 contentDescription = null,
                 modifier = Modifier.size(size * 0.46f),
                 tint = Color.White.copy(alpha = 0.85f)
@@ -627,10 +628,14 @@ private fun CardIconBubble(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.15f)),
+            .background(Color(0xFFB0B0B0).copy(alpha = 0.18f)),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = Color.White)
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = Color.Black.copy(alpha = 0.82f)
+        )
     }
 }
 

@@ -105,7 +105,11 @@ fun AttachmentOptionCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CardIconBubble(icon = option.icon, size = 48.dp)
+            CardIconBubble(
+                icon = option.icon,
+                size = 48.dp,
+                iconTint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.82f)
+            )
             Spacer(modifier = Modifier.width(14.dp))
             Column {
                 Text(
